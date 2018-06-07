@@ -6,6 +6,7 @@
  * text : réponse en texte libre
  * scale : réponse en 1->5 (1 indiquant la plus haute insatisfaction et 
  *         5 la plus haute satisfaction)
+ * select : 1 -> 5
  */
 
 // Questions
@@ -45,6 +46,15 @@ $questions = array(
             '4.2' => 'Réussirez-vous ce cours en deuxième session ?'
         )
     ),
+    '5' => array(
+        'type' => 'select',
+        'title' => 'Niveau',
+        'questions' => array(
+            '5.1' => 'Comment évalueriez-vous votre niveau ?',
+            '5.2' => 'Quel cote donneriez vous au cours ?'
+        )
+    ),
+
 );
 $return = array();
 if (isset($_POST['length'])) {

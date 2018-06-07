@@ -2,7 +2,8 @@ var enquete = {
     nbQuestions : 0,
     numPage : 1,
     type : 'aucun',
-    reponses : {}
+    reponses : {},
+    allFill: false
 };
 
 function getQuestion(survey) {
@@ -23,22 +24,47 @@ function getQuestion(survey) {
                 quest += '<h4>' + data.questions[enquete.numPage + '.' + (i + 1)] + '</h4>';
                 switch(enquete.type){
                     case ('boolean'):
-                        quest += '<label><input id="rep' + (i + 1) +'oui" type="radio" name="rep' + enquete.numPage + '_' + (i + 1) +'" value="1">OUI</label>' +
-                            '<label><input id="rep' + (i + 1) +'non" type="radio" name="rep' + enquete.numPage + '_' + (i + 1) +'" value="2">NON</label>';
+                        quest += '<label><input id="rep' + (i + 1) +'oui" type="radio" name="rep' + enquete.numPage + '_' + (i + 1) +'" value="1" + disa>OUI</label>' +
+                            '<label><input id="rep' + (i + 1) +'non" type="radio" name="rep' + enquete.numPage + '_' + (i + 1) +'" value="2" + disa>NON</label>';
                         break;
                     case ('scale'):
-                        quest += '<input type="range" name="rep' + (i + 1) + '" id="rep' + enquete.numPage + '_' + (i + 1) + '" min="0" max="5" scale="1" value="0"/>' +
-                            '<div id="value_' + enquete.numPage + '_' + (i + 1) + '"></div>';
+                        quest += '<input type="range" name="rep' + (i + 1) + '" id="rep' + enquete.numPage + '_' + (i + 1) + '" min="0" max="5" scale="1" value="0" oninput="showValRange(this)">' +
+                            '<div id="value_rep' + enquete.numPage + '_' + (i + 1) + '"></div>';
                         break;
                     case ('text'):
                         quest += '<input type="text" name="rep' + (i + 1) + '" id="rep' + enquete.numPage + '_' + (i + 1) + '"/>';
                         break;
+                    case ('select'):
+                        quest += '<select>' +
+                            '<option id="rep' + enquete.numPage + '_' + (i + 1) + '_1" name="rep' + enquete.numPage + '_' + (i + 1) +'" value="1">1</option>' +
+                            '<option id="rep' + enquete.numPage + '_' + (i + 1) + '_2" name="rep' + enquete.numPage + '_' + (i + 1) +'" value="2">2</option>' +
+                            '<option id="rep' + enquete.numPage + '_' + (i + 1) + '_3" name="rep' + enquete.numPage + '_' + (i + 1) +'" value="3">3</option>' +
+                            '<option id="rep' + enquete.numPage + '_' + (i + 1) + '_4" name="rep' + enquete.numPage + '_' + (i + 1) +'" value="4">4</option>' +
+                            '<option id="rep' + enquete.numPage + '_' + (i + 1) + '_5" name="rep' + enquete.numPage + '_' + (i + 1) +'" value="5">5</option>' +
+                            '</select>';
+                        break;
+                    case('checkbox'):
+                        quest += '<label><input id="rep' + (i + 1) + '_' + 1 +'" type="checkbox" name="rep' + enquete.numPage + '_' + (i + 1) +'" value="PHP">PHP</label>' +
+                            '<label><input id="rep' + (i + 1) + '_' + 2 +'" type="checkbox" name="rep' + enquete.numPage + '_' + (i + 1) +'" value="JS">JS</label>';
+                        break;
                 }
-                $('#questions').html(quest);
+            }
+            $('#questions').html(quest);
+            if(enquete.allFill === true){
+                $('input:not(#next, #confirm) , select').prop('disabled', true);
             }
             getReponse(enquete);
         }
     })
+}
+
+/**
+ *
+ * @param val
+ * affiche la valeur de l'input range
+ */
+function showValRange(val){
+    $('#value_' + val.id).text(val.value);
 }
 
 /**
@@ -67,6 +93,16 @@ function setReponse(survey){
                 survey.reponses['rep' + survey.numPage + '_' + (i + 1)] = [$('#rep' + survey.numPage + '_' + (i +1 )).val(), survey.numPage];
             }
             break;
+        case ('select'):
+            $('select option').each(function(){
+                survey.reponses[$(this)[0].attributes.name.value] = ['0', survey.numPage];
+            });
+            $(':selected').each(function(){
+                survey.reponses[$(this)[0].attributes.name.value][0] = $(this).val();
+            });
+            break;
+        case ('checkbox'):
+            break;
     }
 }
 
@@ -91,6 +127,18 @@ function getReponse(survey){
                     break;
                 case ('text'):
                     $('#rep' + survey.numPage + '_' + (i + 1)).val(survey.reponses['rep' + survey.numPage + '_' + (i + 1)][0]);
+                    break;
+                case ('select'):
+                    $('#rep' + survey.numPage + '_' + (i + 1) + '_' + survey.reponses['rep' + survey.numPage + '_' + (i + 1)][0]).prop('selected', true);
+                    break;
+                case ('checkbox'):
+                    console.log($('#rep' + survey.numPage + '_' + (i + 1)));
+                    /*if($('#rep' + survey.numPage + '_' + (i + 1))[0][0] !== undefined){
+                        $('#rep' + (i + 1) + '_1').prop('checked', true);
+                    }
+                    if($('#rep' + survey.numPage + '_' + (i + 1))[0][1] !== undefined){
+                        $('#rep' + (i + 1) + '_2').prop('checked', true);
+                    }*/
                     break;
             }
 
@@ -154,6 +202,7 @@ $('#confirm').on('click', {ENQ: enquete}, function(e){
 
     //si tout est rempli
     e.data.ENQ.numPage = 1;
+    e.data.ENQ.allFill = true;
     update(e.data.ENQ);
     $('.container').css('background-color', '#90EE90');
     $('#confirm').hide();
